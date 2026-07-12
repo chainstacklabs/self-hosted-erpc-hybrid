@@ -9,7 +9,8 @@
   <a target="_blank" href="https://chainstack.com/protocols/">Supported protocols</a> •
   <a target="_blank" href="https://chainstack.com/blog/">Chainstack blog</a> •
   <a target="_blank" href="https://docs.chainstack.com/quickstart/">Blockchain API reference</a> • <br> 
-  • <a target="_blank" href="https://console.chainstack.com/user/account/create">Start for free</a> •
+  • <a target="_blank" href="https://chainstack.com/agents/">Agents</a> •
+  <a target="_blank" href="https://console.chainstack.com/user/account/create">Start for free</a> •
 </p>
 
 # Hybrid RPC: self-hosted node + Chainstack Cloud archive behind one eRPC endpoint
