@@ -40,8 +40,7 @@ Suggested path through this repo:
   Any provider works; the [partner providers](https://chainstack.com/self-hosted/) offer discounts and
   ship the Control Panel pre-installed. The worked example uses a Velia box — see the tutorial for the
   exact config and promo code.
-- A [Chainstack account](https://console.chainstack.com) for the Cloud archive node — the free
-  Developer plan covers this demo.
+- A [Chainstack account](https://console.chainstack.com) for the Cloud archive node.
 - Docker on the server, for eRPC.
 
 ## Quickstart
