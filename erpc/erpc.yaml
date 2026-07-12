@@ -1,7 +1,7 @@
 logLevel: info
 
 # server defaults to :4000 (JSON-RPC) and metrics to :4001 — no explicit block needed
-# (this eRPC build rejects server.port/metrics.port fields).
+# (the current eRPC image rejects server.port/metrics.port fields).
 
 database:
   evmJsonRpcCache:

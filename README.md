@@ -18,8 +18,8 @@
 This tutorial shows a **hybrid RPC setup**: run your own full node for the bulk of your RPC traffic,
 and let [eRPC](https://github.com/erpc/erpc) transparently route what your node can't serve — archive
 state, `trace_*`, and `debug_*` — to a Chainstack Cloud archive node. Your apps see one endpoint;
-recent calls are served locally at flat hardware cost, and you pay for archive only when you actually
-need it.
+recent calls are served by your self-hosted node at flat hardware cost, and you pay for archive only
+when you actually need it.
 
 The worked example runs on **Ethereum Hoodi** — a testnet that's cheap to self-host and fits a small
 box — but the pattern is chain-agnostic. The same eRPC config with a different `chainId` works on any
@@ -79,7 +79,7 @@ Suggested path through this repo:
 
 - `tutorial/` — the full walkthrough (canonical source for all derived content).
 - `erpc/erpc.yaml` — the working eRPC config.
-- `scripts/` — verification that recent calls stay local and archive calls hit Cloud.
+- `scripts/` — verification that recent calls are served by the self-hosted node and archive calls hit Cloud.
 
 ## Running this on another chain
 

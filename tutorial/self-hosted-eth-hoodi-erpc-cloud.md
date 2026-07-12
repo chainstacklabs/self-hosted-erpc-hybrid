@@ -2,14 +2,11 @@
 
 Run your own Ethereum node for the everyday RPC traffic, and let **eRPC** transparently forward the
 heavy historical (archive) queries your node can't serve to a **Chainstack Cloud** archive node.
-One endpoint for your apps; cheap local RPC; archive only when you actually need it.
+One endpoint for your apps; recent RPC served by your own node; archive only when you actually need it.
 
 This walkthrough uses **Ethereum Hoodi** (a testnet) as a low-cost, reproducible example. It's a
 *mechanics* demo — the exact same setup on Ethereum mainnet or Base is where the cost savings land
 (see [Going further](#going-further)).
-
-> **Status of this doc:** built and verified end-to-end on a real run, including the final
-> synced-node proof (section 7).
 
 ## 1. Why
 
@@ -32,7 +29,7 @@ flowchart TD
     E -->|trace_*, debug_*, pruned-state failover| K[Chainstack Cloud<br/>Ethereum archive node]
 ```
 
-- **Self-hosted node** — primary. On this build it runs as Kubernetes pods (`reth` execution +
+- **Self-hosted node** — primary. It runs as Kubernetes pods (`reth` execution +
   `prysm` consensus) managed by Chainstack Self-Hosted. Its RPC is **internal only** — never exposed
   to the internet.
 - **Chainstack Cloud archive node** — the failover/archive upstream. Billed only for what the full
@@ -57,9 +54,9 @@ base tooling (k3s, helm, yq, `cpctl`) and stops before the interactive `cpctl in
 Use a key, not a password. Generate one locally and attach the **public** half to the server:
 
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/hoodi_build_key
-# add ~/.ssh/hoodi_build_key.pub to the server (provider panel, or /root/.ssh/authorized_keys)
-ssh -i ~/.ssh/hoodi_build_key root@<SERVER-IP>
+ssh-keygen -t ed25519 -f ~/.ssh/hoodi_key
+# add ~/.ssh/hoodi_key.pub to the server (provider panel, or /root/.ssh/authorized_keys)
+ssh -i ~/.ssh/hoodi_key root@<SERVER-IP>
 ```
 
 ### 3b. Harden the box (do this before anything else)
@@ -97,7 +94,7 @@ iptables -t raw -I PREROUTING -i <PUBLIC-IF> -p tcp -m multiport --dports 80,443
 ```
 
 Reach the Control Panel later over an SSH tunnel instead:
-`ssh -i ~/.ssh/hoodi_build_key -L 8080:localhost:80 root@<SERVER-IP>` → `http://localhost:8080`.
+`ssh -i ~/.ssh/hoodi_key -L 8080:localhost:80 root@<SERVER-IP>` → `http://localhost:8080`.
 
 > ⚠️ Also change your server's **IPMI/BMC** password — it's separate hardware and a common takeover
 > vector.
@@ -109,11 +106,10 @@ are all private.
 
 **This bit matters for sync speed.** k3s's default `local-path` storage lives on the OS disk. On
 many bare-metal boxes that's a SATA SSD, while the fast NVMe drives ship **raw and unused** — so a
-node deployed with defaults syncs on the *slow* disk. We learned this the hard way: initial Execution
-sync on SATA was painfully slow while two NVMe sat idle.
+node deployed with defaults syncs on the *slow* disk.
 
-Point k3s storage at NVMe first. On this box (two raw NVMe) we striped them (RAID0) for max
-throughput and repointed `local-path`:
+Point k3s storage at NVMe first. With two raw NVMe drives, stripe them (RAID0) for max
+throughput and repoint `local-path`:
 
 ```bash
 # RAID0 across both NVMe -> one fast 1.9 TB volume (RAID0 = no redundancy; fine for a resyncable node)
@@ -174,7 +170,7 @@ eRPC is open-source and runs from a single Docker image. Install Docker if neede
 ```yaml
 logLevel: info
 # server defaults to :4000 (RPC) and :4001 (metrics) — do NOT set server.port/metrics.port,
-# this build rejects those fields.
+# the current eRPC image rejects those fields.
 database:
   evmJsonRpcCache:
     connectors:
@@ -208,8 +204,8 @@ projects:
 ```
 
 The three routing behaviors: **method routing** (`ignoreMethods` keeps `trace_*`/`debug_*` off the
-full node → they go to Cloud), **error failover** (`retry` promotes a request to Cloud when the local
-node errors, e.g. pruned old state), and **finality cache** (finalized results cached forever).
+full node → they go to Cloud), **error failover** (`retry` promotes a request to Cloud when the
+self-hosted node errors, e.g. pruned old state), and **finality cache** (finalized results cached forever).
 
 Run eRPC on the same box with host networking, so it reaches the node over the cluster network and
 the Cloud over the internet while its own ports 4000 and 4001 stay firewalled from outside. Point it
@@ -247,7 +243,7 @@ networks bootstrap completed
 `scripts/test-routing.sh` fires representative calls; `scripts/verify.sh` reads eRPC's Prometheus
 metrics (`erpc_upstream_request_total`) and asserts which upstream served each.
 
-Archive path (works immediately, verified on this build):
+The archive path works immediately, even while the node is still syncing:
 
 ```bash
 curl -s http://localhost:4000/main/evm/560048 -H 'Content-Type: application/json' \
@@ -255,7 +251,7 @@ curl -s http://localhost:4000/main/evm/560048 -H 'Content-Type: application/json
 # served via the Cloud upstream ✓
 ```
 
-Full split (`recent → self-hosted`, `archive → Cloud`) requires the local node fully synced
+Full split (`recent → self-hosted`, `archive → Cloud`) requires the self-hosted node fully synced
 (`eth_syncing=false`) — until then eRPC treats it as unhealthy and routes everything to Cloud. Once
 synced:
 
@@ -265,7 +261,7 @@ synced:
 # PASS: archive call served by Cloud
 ```
 
-Real output from this build once the node reached tip (`eth_syncing=false`, head block `0x306a48`):
+Output from a real run, with the node at tip (`eth_syncing=false`):
 
 ```
 $ curl -s http://<reth-rpc ClusterIP>:8545 -d '{"jsonrpc":"2.0","id":1,"method":"eth_syncing","params":[]}'
@@ -292,7 +288,7 @@ Your code doesn't have to live on the server. eRPC's ports stay firewalled, so r
 SSH tunnel — encrypted, no firewall changes, and no need to bolt authentication onto eRPC:
 
 ```bash
-ssh -i ~/.ssh/hoodi_build_key -N -L 4000:localhost:4000 root@<SERVER-IP>
+ssh -i ~/.ssh/hoodi_key -N -L 4000:localhost:4000 root@<SERVER-IP>
 ```
 
 While the tunnel is up, anything on your machine — a bot, a script, `curl` — uses the hybrid
@@ -317,5 +313,5 @@ Two notes:
 - On **mainnet / Base**, the full node is bigger (2–3.5 TB NVMe) but the archive-offload savings are
   real — you avoid self-hosting a fast-growing archive and pay Cloud only for the slice you can't
   serve. Same eRPC config, different `chainId`.
-- Combine with a Proxmox VM helper to template the box.
-- The pattern generalizes to any Self-Hosted EVM chain (Optimism, Unichain, Zora, Ethereum).
+- The pattern generalizes to any EVM network [supported by Chainstack Self-Hosted](https://docs.chainstack.com/docs/self-hosted/supported-clients-and-protocols),
+  such as Optimism, Base, Unichain, or Zora.
