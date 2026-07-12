@@ -27,16 +27,6 @@ The hybrid idea: self-host the cheap full node, rent the expensive archive as a 
 [Chainstack](https://chainstack.com) node, and let eRPC decide per request. You get one endpoint
 and the cheapest viable path for every call.
 
-```mermaid
-flowchart TD
-    C[client / DApp / indexer] -->|single endpoint :4000| E[eRPC]
-    subgraph BOX[your server]
-      E -->|recent state, light reads| L[self-hosted full node<br/>internal only]
-      E -.->|finalized results cached| E
-    end
-    E -->|trace_*, debug_*, pruned-state failover| K[Chainstack Cloud<br/>archive node]
-```
-
 Suggested path through this repo:
 
 1. Read [the tutorial](tutorial/self-hosted-eth-hoodi-erpc-cloud.md) — the full walkthrough, built
