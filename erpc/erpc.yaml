@@ -41,6 +41,9 @@ projects:
 
     upstreams:
       # Primary: local self-hosted Hoodi full node. Excluded from archive-only methods.
+      # Old-block state reads fail over to Cloud reactively (one failed attempt + retry delay).
+      # If old-block traffic is heavy, skip the wasted attempt by declaring the node's window:
+      #   evm.blockAvailability.lower.latestBlockMinus: 10064   # reth full node keeps ~10k blocks of state history
       - id: self-hosted-eth
         endpoint: ${SELF_HOSTED_RPC_URL}
         evm:

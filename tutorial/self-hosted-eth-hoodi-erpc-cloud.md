@@ -207,6 +207,16 @@ The three routing behaviors: **method routing** (`ignoreMethods` keeps `trace_*`
 full node → they go to Cloud), **error failover** (`retry` promotes a request to Cloud when the
 self-hosted node errors, e.g. pruned old state), and **finality cache** (finalized results cached forever).
 
+Note that error failover is reactive: the first read of an old block still hits the self-hosted node,
+burns one failed attempt plus the 200 ms retry delay, and only then gets served by Cloud. The cache
+absorbs repeats — a read at an old block is finalized data, so it's cached forever after the first hit.
+If your workload reads old state often, declare the node's serving window instead so eRPC routes by
+block height and skips the wasted attempt: set `evm.blockAvailability.lower.latestBlockMinus: 10064`
+on the self-hosted upstream — reth's full-node pruning keeps account and storage history for roughly
+the most recent 10,064 blocks. (You may also see `evm.maxAvailableRecentBlocks` in older configs; it's
+deprecated in favor of `blockAvailability`.) This tutorial keeps the reactive setup because it's
+simpler and it's exactly the behavior `verify.sh` proves.
+
 Run eRPC on the same box with host networking, so it reaches the node over the cluster network and
 the Cloud over the internet while its own ports 4000 and 4001 stay firewalled from outside. Point it
 at the node's `reth-rpc` **ClusterIP**, which is routable from the k3s host (kube-proxy programs it
