@@ -1,0 +1,67 @@
+logLevel: info
+
+# server defaults to :4000 (JSON-RPC) and metrics to :4001 — no explicit block needed
+# (this eRPC build rejects server.port/metrics.port fields).
+
+database:
+  evmJsonRpcCache:
+    connectors:
+      - id: memory
+        driver: memory
+        memory:
+          maxItems: 100000
+    policies:
+      - network: "*"
+        method: "*"
+        finality: finalized
+        connector: memory
+        ttl: 0          # finalized never changes — cache permanently
+      - network: "*"
+        method: "*"
+        finality: unfinalized
+        connector: memory
+        ttl: 5s
+
+projects:
+  - id: main
+    networks:
+      - architecture: evm
+        evm:
+          chainId: 560048   # Ethereum Hoodi testnet
+        failsafe:
+          - matchMethod: "*"
+            timeout:
+              duration: 30s
+            retry:
+              maxAttempts: 2     # primary fails (e.g. pruned state) -> fail over to next upstream
+              delay: 200ms
+            hedge:
+              delay: 3000ms
+              maxCount: 1
+
+    upstreams:
+      # Primary: local self-hosted Hoodi full node. Excluded from archive-only methods.
+      - id: self-hosted-eth
+        endpoint: ${SELF_HOSTED_RPC_URL}
+        evm:
+          chainId: 560048
+        ignoreMethods:
+          - "trace_*"
+          - "debug_*"
+        failsafe:
+          - matchMethod: "*"
+            timeout:
+              duration: 10s
+
+      # Archive + failover: Chainstack Cloud Hoodi archive node. Serves everything; upstream list
+      # order + the primary's ignoreMethods make it the fallback (the tag is just a label).
+      - id: chainstack-cloud-eth
+        endpoint: ${CLOUD_RPC_URL}
+        evm:
+          chainId: 560048
+        tags:
+          - "tier:fallback"
+        failsafe:
+          - matchMethod: "*"
+            timeout:
+              duration: 20s
