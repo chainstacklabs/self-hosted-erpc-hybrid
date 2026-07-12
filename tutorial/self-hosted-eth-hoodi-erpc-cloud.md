@@ -44,7 +44,7 @@ flowchart TD
 
 We used a **Velia** bare-metal box (Ubuntu 24.04, 12 vCPU / 31 GB RAM) ordered with the
 **Chainstack Self-Hosted** management option — which ships the Control Panel **pre-installed**, so
-the whole k3s/`cpctl` install is done for you. Promo `ChainstackSH80` (80% off first month) → ~€22.
+the whole k3s/`cpctl` install is done for you. Promo `ChainstackSH80` gives 80% off the first month.
 
 For Hoodi you need very little: ~6 vCPU, 32 GB RAM, ~500 GB disk. Mainnet needs much more (see
 [System requirements](https://docs.chainstack.com/docs/self-hosted/requirements)).
@@ -285,16 +285,6 @@ PASS: archive call served by Cloud
 The split is confirmed in eRPC's own metrics: `erpc_upstream_request_total{upstream="self-hosted-eth",
 category="eth_blockNumber",finality="realtime"}` increments on recent reads, while
 `{upstream="chainstack-cloud-eth",category="trace_block"}` carries the archive calls.
-
-## 8. Cost
-
-| Item | Monthly | First month |
-|---|---|---|
-| Velia server (promo box) | ~€109 | **~€22** (`ChainstackSH80`) |
-| Chainstack Cloud (Hoodi archive) | **$0** (free Developer plan: 3M RU/mo) | $0 |
-| eRPC | $0 (open source) | $0 |
-
-Archive requests bill at 2 RU each on Chainstack; a testnet demo stays well inside the free tier.
 
 ## Going further
 

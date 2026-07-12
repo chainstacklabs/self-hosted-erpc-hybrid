@@ -32,7 +32,6 @@ Suggested path through this repo:
 1. Read [the tutorial](tutorial/self-hosted-eth-hoodi-erpc-cloud.md) — the full walkthrough, built
    and verified on a real server, including the gotchas we hit.
 2. Skim [`erpc/erpc.yaml`](erpc/erpc.yaml) — the entire routing logic is ~60 commented lines.
-3. Check [`costs.md`](costs.md) — what this actually costs, ongoing and first month.
 
 ## Prerequisites
 
@@ -66,7 +65,6 @@ Suggested path through this repo:
 - `tutorial/` — the full walkthrough (canonical source for all derived content).
 - `erpc/erpc.yaml` — the working eRPC config.
 - `scripts/` — verification that recent calls stay local and archive calls hit Cloud.
-- `costs.md` — cost breakdown across partners.
 
 ## Running this on another chain
 
