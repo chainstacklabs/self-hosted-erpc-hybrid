@@ -286,6 +286,32 @@ The split is confirmed in eRPC's own metrics: `erpc_upstream_request_total{upstr
 category="eth_blockNumber",finality="realtime"}` increments on recent reads, while
 `{upstream="chainstack-cloud-eth",category="trace_block"}` carries the archive calls.
 
+## 8. Use it from your machine
+
+Your code doesn't have to live on the server. eRPC's ports stay firewalled, so reach them over an
+SSH tunnel — encrypted, no firewall changes, and no need to bolt authentication onto eRPC:
+
+```bash
+ssh -i ~/.ssh/hoodi_build_key -N -L 4000:localhost:4000 root@<SERVER-IP>
+```
+
+While the tunnel is up, anything on your machine — a bot, a script, `curl` — uses the hybrid
+endpoint as if it were local:
+
+```
+http://localhost:4000/main/evm/560048
+```
+
+Add `-L 4001:localhost:4001` to the same command if you also want the Prometheus metrics.
+
+Two notes:
+
+- Every request makes a round-trip to the server, so this is for development and testing. A
+  latency-sensitive app belongs on the box, next to eRPC.
+- Avoid opening port 4000 to the internet instead: this config has no authentication on the
+  endpoint, so exposing it publicly hands your node — and the Cloud key behind it — to anyone
+  who finds it.
+
 ## Going further
 
 - On **mainnet / Base**, the full node is bigger (2–3.5 TB NVMe) but the archive-offload savings are
