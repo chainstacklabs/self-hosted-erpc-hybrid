@@ -39,11 +39,11 @@ flowchart TD
 
 ## 3. Get and secure a server
 
-We used a **Velia** bare-metal box (Ubuntu 24.04, 12 vCPU / 31 GB RAM) ordered with the
+We used a **Velia** bare-metal box (Ubuntu 24.04, 12 vCPU / 32 GB RAM) ordered with the
 **Chainstack Self-Hosted** management option — which ships the Control Panel **pre-installed**, so
 the whole k3s/`cpctl` install is done for you. Promo `ChainstackSH80` gives 80% off the first month.
 
-For Hoodi you need very little: ~6 vCPU, 32 GB RAM, ~500 GB disk. Mainnet needs much more (see
+For Hoodi you need very little: 8 vCPU, 32 GB RAM, ~500 GB disk. Mainnet needs much more (see
 [System requirements](https://docs.chainstack.com/docs/self-hosted/requirements)).
 
 If your box does *not* ship with the Control Panel pre-installed, `scripts/provision.sh` installs the
